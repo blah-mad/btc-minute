@@ -1,0 +1,13 @@
+node_modules/
+dist/
+cdk.out/
+.local/
+.env
+.env.*
+!.env.example
+test-results/
+playwright-report/
+coverage/
+*.log
+.DS_Store
+dynamodb-local-metadata.json

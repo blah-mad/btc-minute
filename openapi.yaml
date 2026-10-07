@@ -1,0 +1,118 @@
+openapi: 3.1.0
+info:
+  title: BTC Minute API
+  version: 1.0.0
+  description: Server-authoritative Bitcoin prediction game. Authentication uses Better Auth at /api/auth.
+servers:
+  - url: /
+paths:
+  /api/price:
+    get:
+      operationId: getPrice
+      responses:
+        '200':
+          description: Fresh Coinbase BTC-USD quote
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Quote' }
+        '503': { $ref: '#/components/responses/Error' }
+  /api/player:
+    get:
+      operationId: getPlayer
+      description: Returns the player identified by the authenticated session.
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Authoritative score and current round
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlayerState' }
+        '401': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /api/guesses:
+    post:
+      operationId: createGuess
+      description: Accepts one guess. Reusing the same request ID and direction is idempotent.
+      security: [{ session: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [direction, requestId]
+              properties:
+                direction: { type: string, enum: [up, down] }
+                requestId: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Updated player state
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlayerState' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: __Secure-btc-minute.session_token
+  responses:
+    Error:
+      description: Request failed. After a connection failure, fetch the current player state before retrying with the original request ID.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error, code]
+            properties:
+              error: { type: string }
+              code: { type: string }
+  schemas:
+    Quote:
+      type: object
+      required: [price, tradeId, timestamp, receivedAt, source]
+      properties:
+        price: { type: string, description: Exact decimal USD price }
+        tradeId: { type: string }
+        timestamp: { type: string, format: date-time }
+        receivedAt: { type: string, format: date-time }
+        source: { type: string, enum: [Coinbase] }
+    Guess:
+      type: object
+      required: [id, playerId, direction, entryPrice, entryTradeId, entryPriceAt, acceptedAt, eligibleAt, status]
+      properties:
+        id: { type: string }
+        playerId: { type: string }
+        direction: { type: string, enum: [up, down] }
+        entryPrice: { type: string }
+        entryTradeId: { type: string }
+        entryPriceAt: { type: string, format: date-time }
+        acceptedAt: { type: string, format: date-time }
+        eligibleAt: { type: string, format: date-time }
+        status: { type: string, enum: [pending, resolved] }
+        settlementPrice: { type: string }
+        settlementTradeId: { type: string }
+        settlementPriceAt: { type: string, format: date-time }
+        resolvedAt: { type: string, format: date-time }
+        delta: { type: integer, enum: [1, -1] }
+    PlayerState:
+      type: object
+      required: [playerId, score, activeGuess, lastResult, serverTime]
+      properties:
+        playerId: { type: string }
+        score: { type: integer }
+        activeGuess:
+          oneOf:
+            - { $ref: '#/components/schemas/Guess' }
+            - { type: 'null' }
+        lastResult:
+          oneOf:
+            - { $ref: '#/components/schemas/Guess' }
+            - { type: 'null' }
+        serverTime: { type: string, format: date-time }
