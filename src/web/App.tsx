@@ -145,6 +145,8 @@ export function App() {
   }, [refetchSession]);
 
   useEffect(() => {
+    // Ignore the cached session while intentional sign-out clears it.
+    if (signingOut) return;
     if (currentSession) {
       setLastSession(currentSession);
       guestAttempted.current = false;
@@ -225,6 +227,7 @@ export function App() {
       const result = await authClient.signOut();
       if (result.error) throw new Error(result.error.message || 'Could not sign out.');
       knownSession.current = false;
+      guestAttempted.current = false;
       restoreAttempts.current = 0;
       setRestoreExhausted(false);
       setLastSession(null);

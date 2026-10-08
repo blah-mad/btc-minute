@@ -1,5 +1,37 @@
 import { test, expect, devices } from '@playwright/test';
 
+test('signing out returns to guest play and allows signing back in', async ({ page }) => {
+  const email = `logout-${Date.now()}@example.com`;
+  const password = 'Local-demo-password-42';
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: 'Up Higher price' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Save your score' }).click();
+  await page.getByLabel('Name', { exact: true }).fill('Logout Demo');
+  await page.getByLabel('Email', { exact: true }).fill(email);
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Save your score', exact: true })).toBeEnabled();
+  await expect(page.getByLabel('Your score: 0', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Up Higher price' })).toBeEnabled();
+  await expect(page.getByText('Your previous session could not be restored. Try again to reconnect to your score.')).not.toBeVisible();
+
+  await page.getByRole('button', { name: 'Save your score', exact: true }).click();
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.getByLabel('Email', { exact: true }).fill(email);
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Up Higher price' })).toBeEnabled();
+  await page.reload();
+  await expect(page.getByLabel('Your score: 0', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save your score', exact: true })).toBeEnabled();
+  await expect(page.getByText('Your previous session could not be restored. Try again to reconnect to your score.')).not.toBeVisible();
+});
+
 test('a full round survives closing the page and keeps its score after signup', async ({ page, context }) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
