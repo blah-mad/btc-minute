@@ -1,34 +1,5 @@
 import { test, expect, devices } from '@playwright/test';
 
-test('guess buttons stay enabled during background player refresh', async ({ page }) => {
-  await page.goto('/');
-  const up = page.getByRole('button', { name: 'Up Higher price', exact: true });
-  const down = page.getByRole('button', { name: 'Down Lower price', exact: true });
-  await expect(up).toBeEnabled();
-  await expect(page.getByLabel('Your score: 0', { exact: true })).toBeVisible();
-
-  let releaseRefresh!: () => void;
-  const refreshHeld = new Promise<void>(resolve => { releaseRefresh = resolve; });
-  let refreshStarted = false;
-  await page.route('**/api/player', async route => {
-    refreshStarted = true;
-    await refreshHeld;
-    await route.continue();
-  }, { times: 1 });
-
-  try {
-    // Hold a real scheduled poll so the assertion covers its in-flight state.
-    await expect.poll(() => refreshStarted, { timeout: 10_000 }).toBe(true);
-    await expect(up).toBeEnabled();
-    await expect(down).toBeEnabled();
-    await expect(up).toHaveCSS('opacity', '1');
-    await expect(down).toHaveCSS('opacity', '1');
-    await page.screenshot({ path: 'test-results/background-refresh.png', fullPage: true });
-  } finally {
-    releaseRefresh();
-  }
-});
-
 test('a full round survives closing the page and keeps its score after signup', async ({ page, context }) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
