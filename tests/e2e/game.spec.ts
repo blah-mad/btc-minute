@@ -12,6 +12,11 @@ test('signing out returns to guest play and allows signing back in', async ({ pa
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
 
+  // Session refreshes can overlap after logout; exercise a slower response.
+  await page.route('**/api/auth/get-session', async route => {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await route.continue();
+  });
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Save your score', exact: true })).toBeEnabled();
   await expect(page.getByLabel('Your score: 0', { exact: true })).toBeVisible();

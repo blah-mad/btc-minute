@@ -114,7 +114,10 @@ function LastResult({ result }: { result: Guess }) {
 
 export function App() {
   const queryClient = useQueryClient();
-  const { data: currentSession, isPending: sessionPending, isRefetching: sessionRefetching, error: sessionError, refetch: refetchSession } = authClient.useSession();
+  const { data: receivedSession, isPending: sessionPending, isRefetching: sessionRefetching, error: sessionError, refetch: refetchSession } = authClient.useSession();
+  const [signedOutSessionId, setSignedOutSessionId] = useState<string | null>(null);
+  // An overlapping refresh can retain a revoked session until its response arrives.
+  const currentSession = receivedSession?.session.id === signedOutSessionId ? null : receivedSession;
   const [lastSession, setLastSession] = useState<SessionData | null>(null);
   const session = currentSession || lastSession;
   const [guestBusy, setGuestBusy] = useState(false);
@@ -226,6 +229,7 @@ export function App() {
     try {
       const result = await authClient.signOut();
       if (result.error) throw new Error(result.error.message || 'Could not sign out.');
+      setSignedOutSessionId(currentSession?.session.id ?? null);
       knownSession.current = false;
       guestAttempted.current = false;
       restoreAttempts.current = 0;
