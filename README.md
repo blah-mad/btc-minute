@@ -1,5 +1,7 @@
 # BTC Minute
 
+[Open the live application](https://d2fd5jox0oh7vv.cloudfront.net)
+
 Predict whether Bitcoin's USD price will go up or down after one minute. A correct prediction earns one point; an incorrect prediction loses one. Your score can go below zero.
 
 React and TypeScript frontend with Volt UI, Better Auth sessions, and an AWS serverless backend. Play as a guest or create an account to keep the same score across devices.
@@ -87,12 +89,12 @@ Dependency audit: the pinned CDK library currently bundles a vulnerable `brace-e
 Use a dedicated named AWS CLI profile. Deployment requires an explicit expected account ID and refuses the `default` profile. It checks STS before running CDK and stops if the authenticated account differs. No account is embedded in this repository.
 
 ```sh
-aws sso login --profile <new-profile>
+aws login --profile <new-profile> --region eu-central-1
 npm run bootstrap -- --profile <new-profile> --account <12-digit-account>
 npm run deploy -- --profile <new-profile> --account <12-digit-account>
 ```
 
-Use your account's normal AWS login method if it does not use IAM Identity Center. The deployment identity needs permission to bootstrap CDK and provision the services in the stack. Credentials stay in your AWS profile, never in this repository.
+Browser-based `aws login` requires AWS CLI 2.32.0 or later and creates temporary credentials from a selected console session. If your account uses IAM Identity Center, use `aws sso login --profile <new-profile>` instead. The deployment identity needs permission to bootstrap CDK and provision the services in the stack. Credentials stay in your AWS profile, never in this repository.
 
 CDK generates the session secret and the API origin secret in Secrets Manager. It stores the public application origin in Systems Manager Parameter Store. Deployment outputs include `AppUrl`, table names, and queue URLs, also saved to ignored `.local/deployment-outputs.json`. Open `AppUrl`, complete a round, close/reopen the browser, and verify the score before sharing the deployed link.
 
