@@ -199,7 +199,7 @@ export function App() {
   const stale = !Number.isFinite(quoteAge) || quoteAge > 10_000;
   const { remaining, elapsed } = roundClock(active, now);
   const connecting = sessionPending || guestBusy || !currentSession || player.isPending;
-  const disabled = connecting || !!active || guess.isPending || player.isFetching || player.isError || stale || quote.isError || signingOut;
+  const disabled = connecting || !!active || guess.isPending || player.isError || stale || quote.isError || signingOut;
   const isGuest = session?.user.isAnonymous ?? true;
   const canSwitchAccount = !active && !guess.isPending && (!connecting || restoreExhausted) && !signingOut;
 
