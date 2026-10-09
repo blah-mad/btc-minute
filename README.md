@@ -82,7 +82,7 @@ Install the browser once with `npx playwright install chromium` (CI adds `--with
 
 Tests cover price/time boundaries, ties, outages, negative scores, simultaneous submissions, duplicate workers, guest linking, revoked sessions, forged ownership, and deployment configuration. The OpenAPI contract is in `openapi.yaml`; frontend and backend share its generated types. Regenerate them with `npm run generate:api`.
 
-Dependency audit: the pinned CDK library currently bundles a vulnerable `brace-expansion` build dependency. npm cannot override that bundled copy. CDK is used for infrastructure generation and is excluded from the deployed Lambda bundles. Update CDK and rerun `npm audit` when its upstream bundle is fixed; the current audit is not clean.
+Run `npm audit` to check dependencies for known vulnerabilities. CDK is used for infrastructure generation and is excluded from the deployed Lambda bundles.
 
 ## Deploy to a selected AWS account
 
